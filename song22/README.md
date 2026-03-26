@@ -17,7 +17,7 @@ cd <repo-name>
 
 **2. Run the setup script**
 
-This will create a conda environment named `klip` (Python 3.9), install all dependencies, and apply a required patch to flax.
+This will create a conda environment named `klip_song22` (Python 3.9), install all dependencies, and apply a required patch to flax.
 
 ```bash
 bash setup.sh

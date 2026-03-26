@@ -5,7 +5,7 @@
 
 set -e
 
-ENV_NAME="${1:-klip}"
+ENV_NAME="${1:-klip_song22}"
 
 # Step 1: Create conda environment
 echo "==> Creating conda environment '$ENV_NAME' with Python 3.9..."

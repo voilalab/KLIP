@@ -281,7 +281,18 @@ outputs/
 
 This implementation builds upon the following research papers. **Please cite them if you use this code**:
 
-### 1. Diffusion Posterior Sampling (DPS)
+### 1. KLIP:
+If you find this code useful, please consider citing our paper:
+
+```bibtex
+@inproceedings{klip2026,
+  title={KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems},
+  booktitle={IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year={2026},
+}
+```
+
+### 2. Diffusion Posterior Sampling (DPS)
 
 ```bibtex
 @inproceedings{chung2023diffusion,
@@ -294,7 +305,7 @@ This implementation builds upon the following research papers. **Please cite the
 
 **Paper**: [Diffusion Posterior Sampling for General Noisy Inverse Problems (ICLR 2023)](https://openreview.net/forum?id=OnD9zGAGT0k)
 
-### 2. Denoising Diffusion Probabilistic Models (DDPM)
+### 3. Denoising Diffusion Probabilistic Models (DDPM)
 
 ```bibtex
 @inproceedings{ho2020denoising,
@@ -309,7 +320,7 @@ This implementation builds upon the following research papers. **Please cite the
 
 **Paper**: [Denoising Diffusion Probabilistic Models (NeurIPS 2020)](https://arxiv.org/abs/2006.11239)
 
-### 3. CelebA-HQ Dataset
+### 4. CelebA-HQ Dataset
 
 ```bibtex
 @inproceedings{karras2018progressive,
@@ -329,7 +340,7 @@ This implementation builds upon the following research papers. **Please cite the
 
 **Dataset**: [CelebA-HQ](https://github.com/tkarras/progressive_growing_of_gans) and [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html)
 
-### 4. Diffusers Library
+### 5. Diffusers Library
 
 ```bibtex
 @misc{von-platen-etal-2022-diffusers,
@@ -342,86 +353,6 @@ This implementation builds upon the following research papers. **Please cite the
 }
 ```
 
----
-
-## 🔬 Methodology
-
-### DPS Algorithm Overview
-
-The Diffusion Posterior Sampling method solves inverse problems by:
-
-1. **Forward Process**: Simulate image degradation (blur + noise)
-2. **Reverse Diffusion**: Iteratively denoise using pretrained DDPM
-3. **Measurement Guidance**: At each step, compute gradient of measurement loss
-4. **Posterior Correction**: Update sample to be consistent with observation
-
-**Mathematical Formulation**:
-
-```
-x̂_{t-1} = μ_θ(x_t, t) + Σ_θ(x_t, t) · [∇_{x_t} log p(y|x_0(x_t)) + z_t]
-```
-
-Where:
-- `y` is the blurry measurement
-- `x_t` is the noisy sample at step `t`
-- `μ_θ, Σ_θ` are learned mean and variance
-- The gradient term enforces data consistency
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**1. CUDA Out of Memory**
-```python
-# Reduce batch size or image resolution
-IMAGE_SIZE = 128  # Instead of 256
-```
-
-**2. Model Download Fails**
-```bash
-# Manually download model
-huggingface-cli download google/ddpm-celebahq-256
-```
-
-**3. Import Errors**
-```bash
-# Reinstall dependencies
-pip install --upgrade diffusers transformers
-```
-
-**4. Slow Inference**
-```python
-# Reduce diffusion steps
-NUM_DIFFUSION_STEPS = 500  # Faster, slightly lower quality
-```
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License. See `LICENSE` file for details.
-
-**Note**: The pretrained models and datasets have their own licenses:
-- DDPM Model: Apache 2.0
-- CelebA Dataset: Non-commercial research only
-
----
-
-## 🙏 Acknowledgments
-
-- **Hugging Face** for the Diffusers library and pretrained models
-- **KAIST AIMLab** for the DPS algorithm
-- **NVIDIA** for CelebA-HQ dataset curation
-
----
-
-## 📧 Contact
-
-For questions or issues, please open an issue on GitHub or contact [your-email@example.com].
-
----
 
 ## 🔗 Additional Resources
 

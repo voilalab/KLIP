@@ -104,8 +104,15 @@ The modification in sampling, intercepts these updates during the sampling loop 
 ---
 
 ## Citation
-
+If you find this code useful, please consider citing our paper:
 ```bibtex
+
+@inproceedings{klip2026,
+  title={KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems},
+  booktitle={IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year={2026},
+}
+
 @article{hu2023padis,
   title   = {PaDIS: Patch-based Diffusion Inverse Solver},
   author  = {Hu, Jason and others},
@@ -113,11 +120,5 @@ The modification in sampling, intercepts these updates during the sampling loop 
   url     = {https://github.com/jasonhu4/PaDIS}
 }
 
-If you find this code useful, please consider citing our paper:
 
-```bibtex
-@inproceedings{klip2026,
-  title={KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems},
-  booktitle={IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-  year={2026},
-}
+

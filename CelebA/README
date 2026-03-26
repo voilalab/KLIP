@@ -1,4 +1,4 @@
----
+
 # CelebA Experiment 
 CelebA_experiment.ipynb — DPS Deblurring + Heatmap + AUC
 Open CelebA_experiment.ipynb. At the top of the notebook, set your paths and parameters in the Configuration cell:

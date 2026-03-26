@@ -32,7 +32,7 @@ bash setup.sh my_env_name
 Activate the environment:
 
 ```bash
-conda activate klip
+conda activate klip_song22
 ```
 
 ---

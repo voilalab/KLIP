@@ -1,0 +1,26 @@
+# ── Core scientific stack ────────────────────────────────────────────────────
+numpy==1.26.4
+scipy==1.12.0
+Pillow==10.4.0
+matplotlib==3.8.4
+scikit-learn==1.4.2
+tqdm==4.66.5
+
+# ── PyTorch (CUDA 12.1 wheels — adjust index URL for your CUDA version) ──────
+# Install with:
+#   pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 \
+#       --index-url https://download.pytorch.org/whl/cu121
+torch==2.3.1
+torchvision==0.18.1
+torchaudio==2.3.1
+
+# ── Hugging Face / Diffusers ─────────────────────────────────────────────────
+diffusers==0.30.3
+transformers==4.44.2
+accelerate==0.33.0
+huggingface-hub==0.24.6
+safetensors==0.4.5
+
+# ── Jupyter ──────────────────────────────────────────────────────────────────
+jupyterlab==4.2.5
+ipykernel==6.29.5

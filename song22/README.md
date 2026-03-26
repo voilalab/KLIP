@@ -1,12 +1,5 @@
 # KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems
 
-This repository contains the code for the paper:
-
-**KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems**
-Accepted to CVPR 2026.
-
----
-
 ## Acknowledgements
 
 This repository builds on the codebase of [Solving Inverse Problems in Medical Imaging with Score-Based Generative Models](https://openreview.net/forum?id=vaRCHVj0uGI) (Song et al., ICLR 2022). We thank the authors for making their code publicly available. If you are interested in the original work, please refer to their [repository](https://github.com/yang-song/score_sde).

@@ -17,7 +17,8 @@ If you find this code useful, please consider citing our paper:
 
 ```bibtex
 @inproceedings{klip2026,
-  title={KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems},
+  title={KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems},3
+  author={Alireza Kheirandish and Jihoon Hong and Sara Fridovich-Keil},
   booktitle={IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
   year={2026},
 }

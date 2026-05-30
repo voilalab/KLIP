@@ -1,13 +1,4 @@
-"""AUROC computation — both dataset-level and image-level.
-
-Dataset-level (Table 1 main results):
-    - Each image is scored by the MAX KLIP across its blocks.
-    - ROC over (ID, OOD) image scores.
-
-Image-level (Table 1):
-    - Each image gets a per-image ROC over its blocks, masked to body.
-    - Final number is the mean AUROC across the OOD image pool.
-"""
+"""AUROC computation: dataset-level and image-level."""
 from __future__ import annotations
 
 import dataclasses
@@ -18,7 +9,6 @@ from sklearn.metrics import auc, roc_curve
 
 
 def _downsample_mask_to_blocks(mask: np.ndarray, block_size: int) -> np.ndarray:
-    """Reduce a pixel-level binary mask to one cell per block via 'any pixel set'."""
     H, W = mask.shape
     if H % block_size != 0 or W % block_size != 0:
         raise ValueError(f"mask shape {mask.shape} not divisible by block_size={block_size}")
@@ -30,22 +20,21 @@ def _downsample_mask_to_blocks(mask: np.ndarray, block_size: int) -> np.ndarray:
 @dataclasses.dataclass(frozen=True)
 class DatasetLevelResult:
     auroc: float
-    id_scores: np.ndarray                  # (N_id,)
-    ood_scores: np.ndarray                 # (N_ood,)
+    id_scores: np.ndarray
+    ood_scores: np.ndarray
 
 
 @dataclasses.dataclass(frozen=True)
 class ImageLevelResult:
     mean_auroc: float
-    per_image_auroc: np.ndarray            # (N_ood,) — NaN where AUROC undefined
-    valid_count: int                       # how many images had both classes in the mask
+    per_image_auroc: np.ndarray
+    valid_count: int
 
 
 def dataset_level(
     id_score_maps: Sequence[np.ndarray],
     ood_score_maps: Sequence[np.ndarray],
 ) -> DatasetLevelResult:
-    """One AUROC across the full (ID, OOD) image pool, score = max-over-blocks."""
     id_arr  = np.array([sm.max() for sm in id_score_maps],  dtype=np.float64)
     ood_arr = np.array([sm.max() for sm in ood_score_maps], dtype=np.float64)
     y_true = np.concatenate([np.zeros(len(id_arr)), np.ones(len(ood_arr))])
@@ -56,12 +45,11 @@ def dataset_level(
 
 def image_level(
     ood_score_maps: Sequence[np.ndarray],
-    ood_label_masks: Sequence[np.ndarray],   # (H, W) pixel-level: 1 = OOD pixel
-    ood_body_masks: Sequence[np.ndarray] | None,  # (H, W) pixel-level; None → full image
+    ood_label_masks: Sequence[np.ndarray],
+    ood_body_masks: Sequence[np.ndarray] | None,
     *,
     block_size: int,
 ) -> ImageLevelResult:
-    """Per-image AUROC over body-masked blocks, averaged across OOD images."""
     if len(ood_score_maps) != len(ood_label_masks):
         raise ValueError("ood_score_maps and ood_label_masks must align")
 

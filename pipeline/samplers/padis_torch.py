@@ -1,14 +1,4 @@
-"""PaDIS sampler wrapper.
-
-Thin glue layer over CT/dps_sampling_test.py. Slices a dataset .npy to the
-requested indices, shells out to the existing sampler, then converts its
-output (raw per-step delta_x_t + per-step sigma) into the canonical
-Artifact .npz schema by dividing by sigma^p.
-
-The conversion (delta -> delta / sigma^p) lives here, in the sampler wrapper,
-because it's the per-pipeline normalization that puts the artifact into the
-shared scoring form. Once normalized, scoring is framework-agnostic.
-"""
+"""PaDIS sampler wrapper around CT/dps_sampling_test.py."""
 from __future__ import annotations
 
 import os
@@ -27,7 +17,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _write_temp_split(split: DatasetSplit, indices: list[int]) -> Path:
-    """Write the requested image indices as a single-purpose .npy for the sampler."""
     sliced = split.slice(indices)
     fd, tmp = tempfile.mkstemp(suffix=".npy", prefix="padis_input_")
     os.close(fd)
@@ -41,13 +30,6 @@ def _convert_raw_to_artifact(
     recon_path: Path | None,
     sigma_power: float,
 ) -> Artifact:
-    """Raw PaDIS sampler output -> canonical Artifact.
-
-    raw   : (T, C, H, W) float — already mean-over-runs in dps_sampling_test.py.
-    sigma : (T,) float
-    recon : (H, W, C) float — sampler's mean reconstruction (optional)
-    Artifact stores (T, B=1, C, H, W) of (raw / sigma^p), plus g_values = sigma^p.
-    """
     raw = np.load(raw_path)
     if raw.ndim != 4:
         raise ValueError(f"{raw_path}: expected (T, C, H, W); got {raw.shape}")
@@ -60,17 +42,13 @@ def _convert_raw_to_artifact(
     if recon_path is not None and recon_path.exists():
         recon = np.clip(np.load(recon_path), 0, 1).astype(np.float32)
     return Artifact(
-        normalized_updates=normalized[:, None, ...].astype(np.float32),  # B=1
+        normalized_updates=normalized[:, None, ...].astype(np.float32),
         g_values=g.astype(np.float32),
         reconstruction=recon,
     )
 
 
 def run(cfg: Config, indices: list[int], split: DatasetSplit, *, conda_env: str = "song22") -> dict[int, Path]:
-    """Run the PaDIS sampler on the requested image indices.
-
-    Returns: { original_index -> path of saved Artifact .npz }
-    """
     out_dir = cfg.artifacts_dir()
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -78,7 +56,6 @@ def run(cfg: Config, indices: list[int], split: DatasetSplit, *, conda_env: str 
     temp_outdir = Path(tempfile.mkdtemp(prefix="padis_output_"))
     print(f"[padis] temp input = {temp_input}, temp outdir = {temp_outdir}")
 
-    # Resolve paths relative to repo root, since the sampler runs cwd=CT/.
     network = Path(cfg.sampler.checkpoint)
     if not network.is_absolute():
         network = (REPO_ROOT / network).resolve()
@@ -133,7 +110,6 @@ def load_artifacts(cfg: Config, indices: list[int]) -> dict[int, Artifact]:
 
 
 def load_split_for(cfg: Config, kind: str) -> DatasetSplit:
-    """kind = 'id' or 'ood'."""
     if kind == "ood":
         return load_split(cfg.dataset.ood_npy)
     if kind == "id":

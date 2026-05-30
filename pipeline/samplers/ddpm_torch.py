@@ -1,13 +1,4 @@
-"""CelebA-HQ DPS + DDPM sampler (port of CelebA/celebA.ipynb).
-
-In-process port — no shell-out — because there's no existing CLI to wrap.
-Loads `google/ddpm-celebahq-256` (or any DDPMPipeline-compatible HF id), runs DPS
-for Gaussian deblurring with measurement updates captured per timestep, and
-writes the canonical Artifact .npz.
-
-Normalization to canonical form: the notebook divides each measurement update
-by sqrt(beta_t) before squaring. So normalized_updates = delta_x_t / sqrt(beta_t).
-"""
+"""CelebA-HQ DPS + DDPM sampler (Gaussian deblur)."""
 from __future__ import annotations
 
 import math
@@ -24,8 +15,6 @@ from ..io.datasets import DatasetSplit, load_split
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Blur operator (verbatim from CelebA/celebA.ipynb cell 7, trimmed).
 def _make_gaussian_kernel(ksize: int, sigma: float, device, dtype):
     ax = torch.arange(ksize, device=device, dtype=dtype) - (ksize - 1) / 2
     xx, yy = torch.meshgrid(ax, ax, indexing="xy")
@@ -34,8 +23,6 @@ def _make_gaussian_kernel(ksize: int, sigma: float, device, dtype):
 
 
 class BlurOp(nn.Module):
-    """Depthwise Gaussian blur with circular padding. Symmetric: H^T = H."""
-
     def __init__(self, ksize: int, sigma: float):
         super().__init__()
         self.ksize = ksize
@@ -58,8 +45,6 @@ class BlurOp(nn.Module):
         return self.H(x)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# DPS update (verbatim from notebook cell 9).
 def _dps_update_xt(
     xt, t_idx, eps_t, alphas_cumprod, H, Ht, y, sigma_y, dps_scale, match_prior_norm
 ):
@@ -83,11 +68,10 @@ def _dps_update_xt(
     return xt + zeta * grad_xt
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 @torch.no_grad()
 def _sample_one(
     pipe,
-    img_uint8: np.ndarray,                 # (H, W, 3) uint8
+    img_uint8: np.ndarray,
     *,
     num_inference_steps: int,
     num_samples: int,
@@ -98,11 +82,9 @@ def _sample_one(
     dps_scale: float,
     sigma_y: float,
 ) -> Artifact:
-    """Run DPS-deblur on one image and return its canonical Artifact."""
     device = pipe.unet.device
     dtype = next(pipe.unet.parameters()).dtype
 
-    # tensor in [-1, 1], shape (1, 3, H, W)
     x0 = torch.from_numpy(img_uint8).to(device=device, dtype=dtype) / 127.5 - 1.0
     x0 = x0.permute(2, 0, 1).unsqueeze(0)
 
@@ -111,7 +93,6 @@ def _sample_one(
     y = blur_true.H(x0).clamp(-1, 1)
     y_batch = y.expand(num_samples, -1, -1, -1).contiguous()
 
-    # Initialize x_T with per-sample deterministic seeds.
     B, C, H, W = y_batch.shape
     xt = torch.empty_like(y_batch)
     for i in range(B):
@@ -134,24 +115,19 @@ def _sample_one(
             blur_model.H, blur_model.Ht, y_batch,
             sigma_y, dps_scale, match_prior_norm=False,
         )
-        measurement_list.append((xt - x_before).cpu().float())   # (B, C, H, W)
+        measurement_list.append((xt - x_before).cpu().float())
         sqrt_betas.append(float(math.sqrt(betas[t_idx].item())))
-        # Scheduler diffusion step.
         gen = torch.Generator(device=device).manual_seed(base_seed + 99991)
         xt = scheduler.step(eps, t, xt, generator=gen).prev_sample
 
-    # Stack to (T, B, C, H, W), normalize by sqrt(beta_t).
-    stacked = torch.stack(measurement_list, dim=0).numpy().astype(np.float32)  # (T, B, C, H, W)
+    stacked = torch.stack(measurement_list, dim=0).numpy().astype(np.float32)
     g_values = np.array(sqrt_betas, dtype=np.float32)
     normalized = stacked / g_values.reshape(-1, 1, 1, 1, 1)
-    # Final reconstruction: x_t after last scheduler step. Mean over the posterior batch,
-    # rescaled from [-1, 1] back to [0, 1] for inspection.
     recon = ((xt.mean(dim=0).cpu().float() + 1.0) / 2.0).clamp(0, 1).permute(1, 2, 0).numpy().astype(np.float32)
     return Artifact(normalized_updates=normalized, g_values=g_values, reconstruction=recon)
 
 
 def run(cfg: Config, indices: list[int], split: DatasetSplit, *, conda_env: str | None = None) -> dict[int, Path]:
-    """In-process DPS-deblur on `split.imgs[indices]`. Writes canonical Artifacts."""
     out_dir = cfg.artifacts_dir()
     out_dir.mkdir(parents=True, exist_ok=True)
 

@@ -1,12 +1,4 @@
-"""song22 (predictor-corrector, JAX) sampler wrapper.
-
-Reuses the existing song22/configs/ve/*.py for all sampler/model/SDE settings —
-the unified Config only carries paths + KLIP knobs. We pass the song22 config
-path through `sampler.extra['song22_config']`.
-
-Shells out to song22/_pipeline_sample.py, which lives next to run_klip.py so
-that song22's relative imports resolve.
-"""
+"""song22 (predictor-corrector, JAX) sampler wrapper."""
 from __future__ import annotations
 
 import os
@@ -25,7 +17,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def _write_temp_split(split: DatasetSplit, indices: list[int], orig_npy: Path) -> Path:
-    """Mirror chaos_ood_*.npy schema so song22's load path is unchanged."""
     fd, tmp = tempfile.mkstemp(suffix=".npy", prefix="song22_input_")
     os.close(fd)
     sliced = split.slice(indices)

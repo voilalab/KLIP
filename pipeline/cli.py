@@ -1,17 +1,8 @@
 """Unified-pipeline command-line entry.
 
-Stages:
-  sample : run the configured sampler over the requested image indices,
-           write canonical Artifact .npz files to {output}/{name}/artifacts/.
-  score  : load artifacts, compute per-image KLIP score maps, save .npy under
-           {output}/{name}/scores/.
-  auroc  : compute dataset- and image-level AUROC from the score maps + masks.
-  all    : sample -> score -> auroc.
-
 Usage:
-  python -m pipeline.cli --config pipeline/configs/chaos_padis_image.yaml \
-                         --stage all \
-                         --ood-indices 0
+  python -m pipeline.cli --config <path.yaml> --stage {sample,score,auroc,all} \\
+                         --ood-indices <spec> [--id-indices <spec>]
 """
 from __future__ import annotations
 
@@ -22,7 +13,6 @@ from pathlib import Path
 
 import numpy as np
 
-# Allow `python pipeline/cli.py ...` as well as `python -m pipeline.cli ...`.
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from pipeline.io.artifact import Artifact
@@ -126,11 +116,9 @@ def stage_auroc(
     out: dict = {"task": cfg.task, "name": cfg.name}
 
     ood_split = load_split(cfg.dataset.ood_npy)
-    # Dataset stored at sampler.image_size or a multiple thereof; decimate to sampler resolution.
     stride = ood_split.imgs.shape[1] // cfg.sampler.image_size
     ood_score_list = [ood_scores[i] for i in ood_idxs]
     if ood_split.labels is not None:
-        # CHAOS convention: labels uint8/bool, OOD voxels have value > 1 (tumor) or True (star).
         ood_label_masks = [
             ((ood_split.labels[i, ::stride, ::stride] > 1).astype(np.uint8) * 255)
             if ood_split.labels[i].dtype == np.uint8
@@ -142,7 +130,6 @@ def stage_auroc(
             for i in ood_idxs
         ] if ood_split.masks is not None else None
     else:
-        # CelebA convention: no separate body mask; `masks` is the per-pixel OOD (scar) label.
         if ood_split.masks is None:
             raise ValueError("dataset has neither labels nor masks; cannot compute AUROC")
         ood_label_masks = [

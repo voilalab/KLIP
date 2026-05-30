@@ -1,10 +1,4 @@
-"""Helpers for reading the unified chaos_*.npy / celeba_*.npy files.
-
-Schema (all `.npy` files are pickled dicts):
-    imgs    (N, H, W) uint8         OR (N, H, W, 3) for CelebA
-    masks   (N, H, W) uint8         body / foreground / scar mask
-    labels  (N, H, W) uint8 or bool OOD label (e.g. tumor voxels = 2)
-"""
+"""Helpers for reading the unified chaos_*.npy / celeba_*.npy files."""
 from __future__ import annotations
 
 import dataclasses
@@ -15,9 +9,9 @@ import numpy as np
 
 @dataclasses.dataclass
 class DatasetSplit:
-    imgs: np.ndarray                       # (N, H, W) or (N, H, W, 3) uint8
-    masks: np.ndarray | None = None        # (N, H, W) uint8 — body mask
-    labels: np.ndarray | None = None       # (N, H, W) uint8 / bool — OOD label
+    imgs: np.ndarray
+    masks: np.ndarray | None = None
+    labels: np.ndarray | None = None
 
     def __len__(self) -> int:
         return self.imgs.shape[0]

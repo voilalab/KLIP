@@ -1,13 +1,4 @@
-"""Unified config schema (dataclasses + YAML loader).
-
-One YAML config per (model × dataset × task) combination. Fields are grouped:
-  - sampler: which backend, checkpoint path, sampler-specific hyperparams
-  - dataset: paths to the unified chaos_*.npy / celeba_*.npy
-  - forward_op: which inverse problem (ct_parbeam, gaussian_blur, ...)
-  - klip:    block_size, t_start, t_end, num_samples (Equation 12 knobs)
-  - task:    'image' (per-block AUROC) or 'dataset' (max-over-blocks AUROC)
-  - output:  where to put canonical artifacts + score arrays
-"""
+"""Unified config schema (dataclasses + YAML loader)."""
 from __future__ import annotations
 
 import dataclasses
@@ -19,55 +10,54 @@ import yaml
 
 @dataclasses.dataclass
 class SamplerCfg:
-    backend: str                           # 'padis_torch' | 'song22_jax' | 'ddpm_torch'
-    checkpoint: str                        # path or HF id
-    num_samples: int = 1                   # posterior samples per image (B in artifact)
-    num_steps: int = 100                   # diffusion sampling steps
-    sigma_min: float = 0.003               # PaDIS EDM schedule
+    backend: str
+    checkpoint: str
+    num_samples: int = 1
+    num_steps: int = 100
+    sigma_min: float = 0.003
     sigma_max: float = 10.0
-    zeta: float = 0.3                      # DPS step size
-    pad: int = 24                          # PaDIS patch padding
-    psize: int = 56                        # PaDIS patch size
-    image_size: int = 256                  # sampler operating resolution
+    zeta: float = 0.3
+    pad: int = 24
+    psize: int = 56
+    image_size: int = 256
     image_channels: int = 1
-    extra: dict[str, Any] = dataclasses.field(default_factory=dict)  # backend-specific
+    extra: dict[str, Any] = dataclasses.field(default_factory=dict)
 
 
 @dataclasses.dataclass
 class DatasetCfg:
-    id_npy: str | None = None              # required if task='dataset'
-    ood_npy: str = ""                      # required (the test OOD set)
-    # If ood_npy points at chaos_ood_*.npy it carries imgs+masks+labels in one file.
+    id_npy: str | None = None
+    ood_npy: str = ""
 
 
 @dataclasses.dataclass
 class ForwardOpCfg:
-    name: str                              # 'ct_parbeam' | 'ct_fanbeam' | 'gaussian_blur'
-    views: int = 24                        # CT: number of projection views
-    blursize: int = 21                     # Gaussian: kernel size
-    blursigma: float = 9.0                 # Gaussian: kernel sigma
-    sigma_y: float = 0.0                   # measurement noise
+    name: str
+    views: int = 24
+    blursize: int = 21
+    blursigma: float = 9.0
+    sigma_y: float = 0.0
 
 
 @dataclasses.dataclass
 class KlipCfg:
-    block_size: int = 2                    # D_B in the paper (1 = pixel-level)
-    t_start: int = 65                      # t_0 (inclusive, indexed in stored timesteps)
-    t_end: int = 85                        # t_1 (exclusive)
-    sigma_power: float = 0.5               # Only for PaDIS-style normalization; ignored elsewhere
+    block_size: int = 2
+    t_start: int = 65
+    t_end: int = 85
+    sigma_power: float = 0.5
 
 
 @dataclasses.dataclass
 class OutputCfg:
-    root: str = "./output"                 # where to write {artifacts/, scores/, auroc.json}
+    root: str = "./output"
     artifacts_subdir: str = "artifacts"
     scores_subdir: str = "scores"
 
 
 @dataclasses.dataclass
 class Config:
-    name: str                              # config identifier (slug)
-    task: str                              # 'image' | 'dataset'
+    name: str
+    task: str
     sampler: SamplerCfg
     dataset: DatasetCfg
     forward_op: ForwardOpCfg

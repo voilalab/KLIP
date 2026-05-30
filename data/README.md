@@ -13,7 +13,6 @@ Every dataset `.npy` is a pickled `dict`. Keys follow a consistent convention:
 | `imgs`   | `(N, H, W)` for grayscale CT, `(N, H, W, 3)` for RGB CelebA            | `uint8`, range `[0, 255]`   | Input images                                           |
 | `masks`  | `(N, H, W)`                                                           | `uint8`                     | Foreground / body / scar mask                          |
 | `labels` | `(N, H, W)`                                                           | `uint8` or `bool`           | Per-pixel OOD label (e.g. tumor voxels = 2 in CHAOS)   |
-| `stems`  | `list[str]`                                                           | —                           | Optional per-image identifier (CelebA)                 |
 
 ## CHAOS (shared between song22 and PaDIS)
 
@@ -43,7 +42,7 @@ Every dataset `.npy` is a pickled `dict`. Keys follow a consistent convention:
 
 | File                    | Shape                                                                 | Keys                       |
 | ---                     | ---                                                                   | ---                        |
-| `celeba_test.npy`       | `(N, 256, 256, 3)` uint8 imgs + `(N, 256, 256)` uint8 masks            | `imgs`, `masks`, `stems`   |
+| `celeba_test.npy`       | `(N, 256, 256, 3)` uint8 imgs + `(N, 256, 256)` uint8 masks            | `imgs`, `masks`            |
 | `celeba_characters.npy` | `(N, 256, 256, 3)` uint8 (whole-image OOD; no masks)                  | `imgs`                     |
 
 `masks > 127` is the OOD label (e.g. scar pixels). The DDPM weights are pulled

@@ -1,15 +1,4 @@
-"""Canonical sampler-output artifact.
-
-One `.npz` per (image, run) pair. Holds *already-normalized* per-timestep
-likelihood-score proxies (delta_x_t / g(t)), which is what the KLIP integrand
-squares. Samplers convert their native output into this schema at write time:
-
-  - song22 (PC) stores diff/g already → write-through.
-  - PaDIS (DPS) stores delta_x_t + sigma separately → divide by sigma^p at write.
-  - CelebA (DPS+DDPM) stores delta_x_t + alphas_cumprod  → divide by sqrt(beta_t).
-
-Once written, the scoring stage is framework-agnostic NumPy.
-"""
+"""Canonical sampler-output artifact."""
 from __future__ import annotations
 
 import dataclasses
@@ -20,26 +9,10 @@ import numpy as np
 
 @dataclasses.dataclass(frozen=True)
 class Artifact:
-    """A single (image, sampler-run) trajectory in canonical form."""
-
-    # (T, B, C, H, W) float32
-    #   T = number of stored timesteps
-    #   B = posterior-sample count averaged into this artifact (>=1)
-    #   C = image channels (1 for CT, 3 for RGB)
-    #   H, W = spatial resolution
-    # Each value is delta_x_t / g(t) — i.e. the per-step likelihood-score proxy
-    # already normalized by the SDE/DDPM diffusion coefficient.
     normalized_updates: np.ndarray
-
-    # (T,) float32 — sigma or sqrt(beta_t) values per timestep, for diagnostics
-    # only. The square root is already absorbed into normalized_updates; this
-    # is kept so callers can recover the raw delta or apply a different
-    # normalization without re-running the sampler.
     g_values: np.ndarray
-
-    # Optional, useful for debugging only.
-    source_image: np.ndarray | None = None    # (C, H, W) uint8
-    reconstruction: np.ndarray | None = None  # (H, W) or (H, W, C) float32 — sampler's final mean image
+    source_image: np.ndarray | None = None
+    reconstruction: np.ndarray | None = None
 
     def __post_init__(self) -> None:
         if self.normalized_updates.ndim != 5:

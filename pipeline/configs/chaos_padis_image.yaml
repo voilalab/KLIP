@@ -1,0 +1,32 @@
+name: chaos_padis_image
+task: image                                  # 'image' | 'dataset'
+
+sampler:
+  backend: padis_torch
+  checkpoint: checkpoints/chaos_padis_ckpt/network-snapshot-001345.pkl
+  num_samples: 1                             # PaDIS averages over runs at write time -> B=1 in artifact
+  num_steps: 100
+  sigma_min: 0.003
+  sigma_max: 10.0
+  zeta: 0.3
+  pad: 24
+  psize: 56
+  image_size: 256
+  image_channels: 1
+
+dataset:
+  ood_npy: data/chaos_ood_tumor.npy
+  id_npy: data/chaos_id.npy
+
+forward_op:
+  name: ct_parbeam
+  views: 24
+
+klip:
+  block_size: 2
+  t_start: 65
+  t_end: 85
+  sigma_power: 0.5
+
+output:
+  root: ./output

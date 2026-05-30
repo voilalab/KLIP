@@ -166,7 +166,7 @@ def dps_modified_new_update_batch(net, latents, latents_pos, inverseop, noisy=No
 @click.command()
 @click.option('--network', 'network_pkl',  help='Network pickle filename', metavar='PATH|URL',                      type=str, required=True)
 @click.option('--outdir',                  help='Where to save the output images', metavar='DIR',                   type=str, required=True)
-@click.option('--image_dir',                  help='Where to save the output images', metavar='DIR',                   type=str, required=True)
+@click.option('--image_npy',                  help='Path to an .npy file ({imgs: (N,H,W) uint8, ...}); resized to image_size via LANCZOS', metavar='PATH', type=str, required=True)
 @click.option('--image_size',                help='Sample resolution', metavar='INT',                                 type=int, default=None)
 @click.option('--pad',                help='Pad width', metavar='INT',                                 type=int, default=None)
 @click.option('--psize',                help='Patch size', metavar='INT',                                 type=int, default=None)
@@ -194,15 +194,22 @@ def dps_modified_new_update_batch(net, latents, latents_pos, inverseop, noisy=No
 
 
 
-def main(network_pkl, image_size, outdir, image_dir, name, views, blursize, scale, channels, sigma, pad, psize,
+def main(network_pkl, image_size, outdir, image_npy, name, views, blursize, scale, channels, sigma, pad, psize,
          num_runs, device=device, **sampler_kwargs):
     print(f'Loading network from "{network_pkl}"...')
     with dnnlib.util.open_url(network_pkl, verbose=False) as f:
         net = pickle.load(f)['ema'].to(device)
 
-    files = os.listdir(image_dir)
-    png_files = [file for file in files if file.endswith('.png')]
-    print(f"Found {len(png_files)} image files.")
+    print(f'Loading images from "{image_npy}"...')
+    images_uint8 = np.load(image_npy, allow_pickle=True).item()['imgs']  # (N, H, W) uint8
+    if images_uint8.shape[-1] != image_size or images_uint8.shape[-2] != image_size:
+        resized = np.empty((images_uint8.shape[0], image_size, image_size), dtype=np.uint8)
+        for i, im in enumerate(images_uint8):
+            resized[i] = np.asarray(
+                PIL.Image.fromarray(im).resize((image_size, image_size), PIL.Image.LANCZOS)
+            )
+        images_uint8 = resized
+    print(f"Found {len(images_uint8)} images at {image_size}x{image_size}.")
 
     inverseop = InverseOperator(image_size, name, views=views, channels=channels, blursize=blursize, scale_factor=scale)
 
@@ -212,19 +219,19 @@ def main(network_pkl, image_size, outdir, image_dir, name, views, blursize, scal
     latents_pos_single = torch.stack([(x_pos / (resolution - 1) - 0.5) * 2., (y_pos / (resolution - 1) - 0.5) * 2.], dim=0).to(device)
     latents_pos_single = latents_pos_single.unsqueeze(0) # Shape: [1, 2, H_pad, W_pad]
 
-    allclean = np.zeros((len(png_files), image_size, image_size, channels))
-    allrecon_mean = np.zeros((len(png_files), image_size, image_size, channels))
-    
+    allclean = np.zeros((len(images_uint8), image_size, image_size, channels))
+    allrecon_mean = np.zeros((len(images_uint8), image_size, image_size, channels))
+
     print(f'Generating images to "{outdir}" using a batch size of {num_runs} per image...')
-    
+
     psnr_all_runs_avg_list = []
     ssim_all_runs_avg_list = []
     psnr_mean_recon_list = []
     ssim_mean_recon_list = []
 
-    for loop_idx, filename in enumerate(tqdm.tqdm(png_files, desc="Processing Images")):
-        clean = PIL.Image.open(os.path.join(image_dir, filename))
-        clean = np.asarray(clean) / 255.0
+    for loop_idx, im in enumerate(tqdm.tqdm(images_uint8, desc="Processing Images")):
+        filename = f"img_{loop_idx:04d}.png"  # used as the per-image output name stem
+        clean = im.astype(np.float64) / 255.0
         if channels == 1:
             clean = np.expand_dims(clean, 0)
         else:
@@ -232,7 +239,7 @@ def main(network_pkl, image_size, outdir, image_dir, name, views, blursize, scal
         
         cleantmp_transposed = np.transpose(clean, (1, 2, 0))
 
-        print(f'\nProcessing "{filename}" ({loop_idx+1}/{len(png_files)})')
+        print(f'\nProcessing "{filename}" ({loop_idx+1}/{len(images_uint8)})')
 
         xclean = torch.from_numpy(clean).to(device=device)
         noisy_y_single = inverseop.A(xclean) + sigma * torch.randn_like(inverseop.A(xclean))

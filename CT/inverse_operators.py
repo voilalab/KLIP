@@ -1,10 +1,11 @@
+import os
 import torch
 import numpy as np
 import sys
 import scipy
 import torch.nn.functional as F
 
-sys.path.append('/home/akheirandish3/PaDIS/odlstuff')
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'odlstuff'))
 from fanbeam import *
 from parbeam import *
 # from parbeam_updated import *

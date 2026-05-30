@@ -1,0 +1,28 @@
+name: chaos_song_dataset
+task: dataset                                # one ROC over (ID, OOD) image scores
+
+sampler:
+  backend: song22_jax
+  checkpoint: checkpoints/chaos_song_ckpt/checkpoints
+  num_samples: 8
+  num_steps: 1000
+  image_size: 512
+  image_channels: 1
+  extra:
+    song22_config: configs/ve/chaos_eval_dataset.py   # t_start=35, t_end=40
+
+dataset:
+  ood_npy: data/chaos_ood_tumor.npy
+  id_npy: data/chaos_id.npy
+
+forward_op:
+  name: ct_parbeam
+  views: 24
+
+klip:
+  block_size: 32
+  t_start: 35
+  t_end: 40
+
+output:
+  root: ./output

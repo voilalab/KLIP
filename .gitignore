@@ -1,0 +1,42 @@
+# Large artifacts — download from Google Drive (see README.md → "Downloading
+# checkpoints and data"). Not committed because they exceed GitHub's 100 MB
+# per-file limit and would bloat clones.
+data/chaos_*.npy
+data/celeba_*.npy
+data/celeba_*.png
+checkpoints/
+
+# Keep the data-directory manifest tracked.
+!data/README.md
+
+# Runtime outputs (canonical Artifact .npz files, per-image score maps, AUROC
+# JSON) produced by `python -m pipeline.cli`.
+output/
+
+# Symlinks created locally by the song22 wrapper to bridge the legacy hard-coded
+# filenames (`{id,tumor,star}_imgs.npy`) and the song22 metal-mask assets. Their
+# targets are user-specific so they shouldn't be committed.
+song22/data/*.npy
+song22/assets/metal_masks
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Local conda / pip caches accidentally written under the repo
+.cache/
+.hf_cache/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*~
+
+# Logs / scratch
+*.log

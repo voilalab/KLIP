@@ -38,6 +38,9 @@ def get_config():
   evaluate.ood = "tumor"      # or "star"
   evaluate.task = "image"
   evaluate.diff_every = 10
+  evaluate.id_npy = "./data/chaos_id.npy"
+  evaluate.tumor_npy = "./data/chaos_ood_tumor.npy"
+  evaluate.star_npy = "./data/chaos_ood_star.npy"
 
   # sampling
   sampling = config.sampling

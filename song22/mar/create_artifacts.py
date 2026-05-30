@@ -2,6 +2,7 @@
 Code adapted from Lequan Yu's repo.
 """
 
+import os
 from mar.utils import pkev2kvp, get_mar_params, interpolate_projection
 import scipy.io as sio
 import numpy as np
@@ -10,8 +11,9 @@ from PIL import Image
 import odl
 import scipy.ndimage
 
-MARpara = get_mar_params("/home/jhong392/workspace/song_copy/score_inverse_problems/" + 'assets/metal_masks')
-metal_masks = sio.loadmat("/home/jhong392/workspace/song_copy/score_inverse_problems/" + 'assets/metal_masks/SampleMasks.mat')['CT_samples_bwMetal']
+_METAL_MASKS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets', 'metal_masks')
+MARpara = get_mar_params(_METAL_MASKS_DIR)
+metal_masks = sio.loadmat(os.path.join(_METAL_MASKS_DIR, 'SampleMasks.mat'))['CT_samples_bwMetal']
 
 
 def convert_png_to_HU(image):

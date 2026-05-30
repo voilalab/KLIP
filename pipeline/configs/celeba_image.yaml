@@ -1,0 +1,34 @@
+name: celeba_image
+task: image
+
+sampler:
+  backend: ddpm_torch
+  checkpoint: google/ddpm-celebahq-256
+  num_samples: 8
+  num_steps: 100
+  zeta: 0.3
+  image_size: 256
+  image_channels: 3
+  extra:
+    base_seed: 44
+    blur_ksize_true: 21
+    blur_sigma_true: 9.0
+    blur_sigma_model: 9.0
+    sigma_y_dps: 1.0
+
+dataset:
+  ood_npy: data/celeba_test.npy
+
+forward_op:
+  name: gaussian_blur
+  blursize: 21
+  blursigma: 9.0
+  sigma_y: 0.0
+
+klip:
+  block_size: 1
+  t_start: 65
+  t_end: 85
+
+output:
+  root: ./output

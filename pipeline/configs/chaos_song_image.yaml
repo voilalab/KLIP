@@ -1,0 +1,28 @@
+name: chaos_song_image
+task: image
+
+sampler:
+  backend: song22_jax
+  checkpoint: checkpoints/chaos_song_ckpt/checkpoints
+  num_samples: 8                             # ignored — comes from song22 config below
+  num_steps: 1000                            # ditto
+  image_size: 512
+  image_channels: 1
+  extra:
+    song22_config: configs/ve/chaos_eval_image.py   # relative to song22/
+
+dataset:
+  ood_npy: data/chaos_ood_tumor.npy
+  id_npy: data/chaos_id.npy
+
+forward_op:
+  name: ct_parbeam
+  views: 24                                  # informational; song22 uses its own
+
+klip:
+  block_size: 32                             # song22 paper config
+  t_start: 65
+  t_end: 85
+
+output:
+  root: ./output

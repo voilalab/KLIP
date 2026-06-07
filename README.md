@@ -2,7 +2,7 @@
 
 Official code release for the CVPR 2026 paper:
 
-> **KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems**
+> [**KLIP: Localized Distribution Shift Detection via KL-Divergence with Diffusion Priors in Inverse Problems**](https://arxiv.org/abs/2605.31596)
 > Alireza Kheirandish\*, Jihoon Hong\*, Sara Fridovich-Keil
 > *IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2026.*
 
